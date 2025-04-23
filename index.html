@@ -19,31 +19,37 @@
     h1, h2 {
       text-align: center;
     }
-    .question-block {
+    .question {
+      margin-bottom: 30px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+      min-height: 50px;
+    }
+    .answers {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       margin-bottom: 20px;
     }
     .answer {
       padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background-color: #f9f9f9;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-    .answer:hover {
-      background-color: #ececec;
-    }
-    select {
-      width: 100%;
-      padding: 8px;
-      border-radius: 8px;
       border: 1px solid #ccc;
-      margin-bottom: 10px;
+      border-radius: 8px;
+      background-color: #e8ecf7;
+      cursor: pointer;
+      text-align: center;
+      user-select: none;
     }
-    .feedback {
-      font-weight: bold;
-      margin-top: 20px;
+    .answer.selected {
+      background-color: #cbd5f2;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .question.selected {
+      border: 2px solid #4a6fc4;
+      background-color: #eef2ff;
     }
     button {
       padding: 10px 20px;
@@ -57,49 +63,62 @@
     button:hover {
       background-color: #cdd4f6;
     }
+    .feedback {
+      font-weight: bold;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <h1>🎮 משחק התאמה: מה הנתון מספר לנו?</h1>
   <p><strong>הנתון:</strong> צריכת החשמל במעבדת רובוטיקה גדלה ב-35% במהלך חודש מרץ.</p>
 
-  <div class="question-block">
-    <label for="q1">מה ניתן ללמוד באופן ישיר מהנתונים?</label>
-    <select id="q1">
-      <option value="">בחר תשובה...</option>
-      <option value="1">נמדדה עלייה בצריכת החשמל באחוז מסוים לעומת חודש קודם.</option>
-      <option value="2">המעבדה עובדת באופן פחות יעיל מכיוון שהיא מבזבזת יותר חשמל והעלויות הפכו ליקרות יותר.</option>
-      <option value="3">נוספו שעות עבודה או תוגבר כוח האדם במעבדה.</option>
-    </select>
-
-    <label for="q2">מה ניתן ללמוד באופן עקיף מהנתונים?</label>
-    <select id="q2">
-      <option value="">בחר תשובה...</option>
-      <option value="1">נמדדה עלייה בצריכת החשמל באחוז מסוים לעומת חודש קודם.</option>
-      <option value="2">המעבדה עובדת באופן פחות יעיל מכיוון שהיא מבזבזת יותר חשמל והעלויות הפכו ליקרות יותר.</option>
-      <option value="3">נוספו שעות עבודה או תוגבר כוח האדם במעבדה.</option>
-    </select>
-
-    <label for="q3">מה לא ניתן ללמוד מהנתונים כלל?</label>
-    <select id="q3">
-      <option value="">בחר תשובה...</option>
-      <option value="1">נמדדה עלייה בצריכת החשמל באחוז מסוים לעומת חודש קודם.</option>
-      <option value="2">המעבדה עובדת באופן פחות יעיל מכיוון שהיא מבזבזת יותר חשמל והעלויות הפכו ליקרות יותר.</option>
-      <option value="3">נוספו שעות עבודה או תוגבר כוח האדם במעבדה.</option>
-    </select>
-
-    <button onclick="checkAnswers()">בדוק תשובות</button>
-    <p id="feedback" class="feedback"></p>
+  <div id="questions">
+    <div class="question" data-id="1">מה ניתן ללמוד באופן ישיר מהנתונים?</div>
+    <div class="question" data-id="2">מה ניתן ללמוד באופן עקיף מהנתונים?</div>
+    <div class="question" data-id="3">מה לא ניתן ללמוד מהנתונים כלל?</div>
   </div>
 
+  <div class="answers">
+    <div class="answer" data-id="1">נמדדה עלייה בצריכת החשמל באחוז מסוים לעומת חודש קודם.</div>
+    <div class="answer" data-id="2">המעבדה עובדת באופן פחות יעיל מכיוון שהיא מבזבזת יותר חשמל והעלויות הפכו ליקרות יותר.</div>
+    <div class="answer" data-id="3">נוספו שעות עבודה או תוגבר כוח האדם במעבדה.</div>
+  </div>
+
+  <button onclick="checkMatch()">בדוק תשובות</button>
+  <p id="feedback" class="feedback"></p>
+
   <script>
-    function checkAnswers() {
-      const q1 = document.getElementById('q1').value;
-      const q2 = document.getElementById('q2').value;
-      const q3 = document.getElementById('q3').value;
+    let selectedQuestion = null;
+
+    document.querySelectorAll('.question').forEach(q => {
+      q.addEventListener('click', () => {
+        document.querySelectorAll('.question').forEach(q => q.classList.remove('selected'));
+        q.classList.add('selected');
+        selectedQuestion = q;
+      });
+    });
+
+    document.querySelectorAll('.answer').forEach(a => {
+      a.addEventListener('click', () => {
+        if (!selectedQuestion) return;
+        const questionId = selectedQuestion.getAttribute('data-id');
+        const answerId = a.getAttribute('data-id');
+        selectedQuestion.setAttribute('data-answer', answerId);
+        selectedQuestion.innerText = selectedQuestion.innerText.split('\n')[0] + "\n" + a.innerText;
+        a.classList.add('selected');
+        selectedQuestion.classList.remove('selected');
+        selectedQuestion = null;
+      });
+    });
+
+    function checkMatch() {
+      const q1 = document.querySelector('.question[data-id="1"]').getAttribute('data-answer');
+      const q2 = document.querySelector('.question[data-id="2"]').getAttribute('data-answer');
+      const q3 = document.querySelector('.question[data-id="3"]').getAttribute('data-answer');
       const feedback = document.getElementById('feedback');
 
-      if (q1 === "1" && q2 === "3" && q3 === "2") {
+      if (q1 === '1' && q2 === '3' && q3 === '2') {
         feedback.style.color = 'green';
         feedback.innerText = 'כל הכבוד! ענית נכון על שלושת הסעיפים.';
       } else {
